@@ -1,0 +1,1 @@
+This template was adapted from [GitHub: radix-ai/poetry-cookiecutter](https://github.com/radix-ai/poetry-cookiecutter).

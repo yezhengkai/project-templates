@@ -1,0 +1,307 @@
+[build-system]  # https://python-poetry.org/docs/pyproject/#poetry-and-pep-517
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]  # https://python-poetry.org/docs/pyproject/
+name = "{{ package_name | kebab_case }}"
+version = "0.0.0"
+description = "{{ package_description }}"
+authors = ["{{ author_name }} <{{ author_email }}>"]
+readme = "README.md"
+repository = "{{ package_url }}"
+{%- if with_conventional_commits %}
+
+[tool.commitizen]  # https://commitizen-tools.github.io/commitizen/config/
+bump_message = "bump(release): v$current_version → v$new_version"
+tag_format = "v$version"
+update_changelog_on_bump = true
+version = "0.0.0"
+version_files = ["pyproject.toml:version"]
+{%- endif %}
+{%- if with_typer_cli %}
+
+[tool.poetry.scripts]  # https://python-poetry.org/docs/pyproject/#scripts
+{{ package_name | kebab_case }} = "{{ package_name | snake_case }}.cli:app"
+{%- endif %}
+
+[tool.poetry.dependencies]  # https://python-poetry.org/docs/dependency-specification/
+{%- if with_fastapi_api %}
+coloredlogs = ">=15.0.1"
+fastapi = { extras = ["all"], version = ">=0.92.0" }
+gunicorn = ">=20.1.0"
+{%- endif %}
+{%- if with_fastapi_api or with_streamlit_app %}
+poethepoet = ">=0.20.0"
+{%- endif %}
+{%- if with_pydantic_typing %}
+pydantic = ">=1.10.7"
+{%- endif %}
+python = ">={{ python_version }},<4.0"
+{%- if with_sentry_logging %}
+sentry-sdk = ">=1.16.0"
+{%- endif %}
+{%- if with_streamlit_app %}
+streamlit = ">=1.19.0"
+{%- endif %}
+{%- if with_typer_cli %}
+typer = { extras = ["all"], version = ">=0.9.0" }
+{%- endif %}
+{%- if with_fastapi_api %}
+uvicorn = { extras = ["standard"], version = ">=0.20.0" }
+{%- endif %}
+
+[tool.poetry.group.test.dependencies]  # https://python-poetry.org/docs/master/managing-dependencies/
+{%- if with_jupyter_lab %}
+black = { extras = ["jupyter"], version = ">=23.3.0" }
+{%- else %}
+black = ">=23.3.0"
+{%- endif %}
+{%- if with_conventional_commits %}
+commitizen = ">=3.2.1"
+{%- endif %}
+coverage = { extras = ["toml"], version = ">=7.2.5" }
+mypy = ">=1.2.0"
+{%- if not with_fastapi_api and not with_streamlit_app %}
+poethepoet = ">=0.20.0"
+{%- endif %}
+pre-commit = ">=3.3.1"
+pytest = ">=7.3.1"
+pytest-clarity = ">=1.0.1"
+pytest-mock = ">=3.10.0"
+pytest-xdist = ">=3.2.1"
+ruff = ">=0.0.270"
+{%- if development_environment == "strict" %}
+safety = ">=2.3.4,!=2.3.5"
+shellcheck-py = ">=0.9.0"
+typeguard = ">=3.0.2"
+{%- endif %}
+
+[tool.poetry.group.dev.dependencies]  # https://python-poetry.org/docs/master/managing-dependencies/
+cruft = ">=2.14.0"
+{%- if with_jupyter_lab %}
+jupyterlab = ">=3.6.3"
+{%- endif %}
+pdoc = ">=13.1.1"
+{%- if private_package_repository_name %}
+
+[[tool.poetry.source]]  # https://python-poetry.org/docs/repositories/#using-a-private-repository
+name = "{{ private_package_repository_name | slugify }}"
+url = "{{ private_package_repository_url }}"
+{%- endif %}
+
+[tool.black]  # https://black.readthedocs.io/en/stable/usage_and_configuration/the_basics.html#configuration-via-a-file
+line-length = 100
+target-version = ["py{{ python_version | split(pat=".") | slice(end=2) | join }}"]
+
+[tool.coverage.report]  # https://coverage.readthedocs.io/en/latest/config.html#report
+{%- if development_environment == "strict" %}
+fail_under = 50
+{%- endif %}
+precision = 1
+show_missing = true
+skip_covered = true
+
+[tool.coverage.run]  # https://coverage.readthedocs.io/en/latest/config.html#run
+branch = true
+command_line = "--module pytest"
+data_file = "reports/.coverage"
+source = ["src"]
+
+[tool.coverage.xml]  # https://coverage.readthedocs.io/en/latest/config.html#xml
+output = "reports/coverage.xml"
+
+[tool.mypy]  # https://mypy.readthedocs.io/en/latest/config_file.html
+junit_xml = "reports/mypy.xml"
+{%- if with_fastapi_api or with_pydantic_typing %}
+plugins = "pydantic.mypy"
+{%- endif %}
+{%- if development_environment == "strict" %}
+strict = true
+disallow_subclassing_any = false
+disallow_untyped_decorators = false
+{%- endif %}
+ignore_missing_imports = true
+pretty = true
+show_column_numbers = true
+show_error_codes = true
+show_error_context = true
+warn_unreachable = true
+{%- if with_fastapi_api or with_pydantic_typing and development_environment == "strict" %}
+
+[tool.pydantic-mypy]  # https://pydantic-docs.helpmanual.io/mypy_plugin/#configuring-the-plugin
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
+warn_untyped_fields = true
+{%- endif %}
+
+[tool.pytest.ini_options]  # https://docs.pytest.org/en/latest/reference/reference.html#ini-options-ref
+addopts = "--color=yes --doctest-modules --exitfirst --failed-first{% if development_environment == 'strict' %} --strict-config --strict-markers --typeguard-packages={{ package_name | snake_case }}{% endif %} --verbosity=2 --junitxml=reports/pytest.xml"
+{%- if development_environment == "strict" %}
+filterwarnings = ["error", "ignore::DeprecationWarning"]
+{%- endif %}
+testpaths = ["src", "tests"]
+xfail_strict = true
+
+[tool.ruff]  # https://github.com/charliermarsh/ruff
+fix = true
+ignore-init-module-imports = true
+line-length = 100
+{%- if development_environment == "strict" %}
+select = ["A", "ASYNC", "B", "BLE", "C4", "C90", "D", "DTZ", "E", "EM", "ERA", "F", "FLY", "G", "I", "ICN", "INP", "ISC", "N", "NPY", "PGH", "PIE", "PLC", "PLE", "PLR", "PLW", "PT", "PTH", "PYI", "RET", "RSE", "RUF", "S", "SIM", "SLF", "T10", "T20", "TCH", "TID", "TRY", "UP", "W", "YTT"]
+ignore = ["E501", "PGH001", "RET504", "S101"]
+unfixable = ["ERA001", "F401", "F841", "T201", "T203"]
+{%- else %}
+select = ["A", "ASYNC", "B", "C4", "C90", "D", "DTZ", "E", "F", "FLY", "I", "ISC", "N", "NPY", "PGH", "PIE", "PLC", "PLE", "PLR", "PLW", "PT", "RET", "RUF", "RSE", "SIM", "TID", "UP", "W", "YTT"]
+ignore = ["E501", "PGH001", "PGH002", "PGH003", "RET504", "S101"]
+unfixable = ["F401", "F841"]
+{%- endif %}
+src = ["src", "tests"]
+target-version = "py{{ python_version | split(pat=".") | slice(end=2) | join }}"
+
+[tool.ruff.flake8-tidy-imports]
+ban-relative-imports = "all"
+{%- if development_environment == "strict" %}
+
+[tool.ruff.pycodestyle]
+max-doc-length = 100
+{%- endif %}
+
+[tool.ruff.pydocstyle]
+convention = "{{ docstring_style | lower }}"
+
+[tool.poe.tasks]  # https://github.com/nat-n/poethepoet
+{%- if with_fastapi_api %}
+
+  [tool.poe.tasks.api]
+  help = "Serve a REST API"
+  shell = """
+    if [ $dev ]
+    then {
+      uvicorn \
+        --host $host \
+        --port $port \
+        --reload \
+        {{ package_name | snake_case }}.api:app
+    } else {
+      gunicorn \
+        --access-logfile - \
+        --bind $host:$port \
+        --graceful-timeout 10 \
+        --keep-alive 10 \
+        --log-file - \
+        --timeout 30 \
+        --worker-class uvicorn.workers.UvicornWorker \
+        --worker-tmp-dir /dev/shm \
+        --workers 2 \
+        {{ package_name | snake_case }}.api:app
+    } fi
+    """
+
+    [[tool.poe.tasks.api.args]]
+    help = "Bind socket to this host (default: 0.0.0.0)"
+    name = "host"
+    options = ["--host"]
+    default = "0.0.0.0"
+
+    [[tool.poe.tasks.api.args]]
+    help = "Bind socket to this port (default: 8000)"
+    name = "port"
+    options = ["--port"]
+    default = "8000"
+
+    [[tool.poe.tasks.api.args]]
+    help = "Enable development mode"
+    type = "boolean"
+    name = "dev"
+    options = ["--dev"]
+{%- endif %}
+{%- if with_streamlit_app %}
+
+  [tool.poe.tasks.app]
+  help = "Serve a Streamlit app"
+  cmd = """
+    streamlit run
+      --browser.gatherUsageStats false
+      --server.address $host
+      --server.port $port
+      --theme.base light
+      src/{{ package_name | snake_case }}/app.py
+    """
+  use_exec = true
+
+    [[tool.poe.tasks.app.args]]
+    help = "Bind socket to this host (default: 0.0.0.0)"
+    name = "host"
+    options = ["--host"]
+    default = "0.0.0.0"
+
+    [[tool.poe.tasks.app.args]]
+    help = "Bind socket to this port (default: 8000)"
+    name = "port"
+    options = ["--port"]
+    default = "8000"
+{%- endif %}
+
+  [tool.poe.tasks.docs]
+  help = "Generate this package's docs"
+  cmd = """
+    pdoc
+      --docformat $docformat
+      --output-directory $outputdirectory
+      {{ package_name | snake_case }}
+    """
+
+    [[tool.poe.tasks.docs.args]]
+    help = "The docstring style (default: {{ docstring_style | lower }})"
+    name = "docformat"
+    options = ["--docformat"]
+    default = "{{ docstring_style | lower }}"
+
+    [[tool.poe.tasks.docs.args]]
+    help = "The output directory (default: docs)"
+    name = "outputdirectory"
+    options = ["--output-directory"]
+    default = "docs"
+{%- if with_jupyter_lab %}
+
+  [tool.poe.tasks.lab]
+  help = "Run Jupyter Lab"
+
+    [[tool.poe.tasks.lab.sequence]]
+    cmd = "mkdir -p notebooks"
+
+    [[tool.poe.tasks.lab.sequence]]
+    cmd = """
+      jupyter lab
+        --allow-root
+        --notebook-dir notebooks
+      """
+{%- endif %}
+
+  [tool.poe.tasks.lint]
+  help = "Lint this package"
+
+    [[tool.poe.tasks.lint.sequence]]
+    cmd = """
+      pre-commit run
+        --all-files
+        --color always
+      """
+{%- if development_environment == "strict" %}
+
+    [[tool.poe.tasks.lint.sequence]]
+    shell = "safety check --continue-on-error --full-report"
+{%- endif %}
+
+  [tool.poe.tasks.test]
+  help = "Test this package"
+
+    [[tool.poe.tasks.test.sequence]]
+    cmd = "coverage run"
+
+    [[tool.poe.tasks.test.sequence]]
+    cmd = "coverage report"
+
+    [[tool.poe.tasks.test.sequence]]
+    cmd = "coverage xml"
