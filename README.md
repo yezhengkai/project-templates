@@ -19,10 +19,10 @@ curl -sSf https://raw.githubusercontent.com/yezhengkai/project-templates/main/sc
 Download the latest version of the kickstart binary for Windows to the current directory.
 ```powershell
 # https://www.reddit.com/r/PowerShell/comments/10r5fds/how_to_run_powershell_scripts_directly_from/
-Invoke-Expression "& { $(Invoke-RestMethod https://raw.githubusercontent.com/yezhengkai/project-templates/main/scripts/download-kickstart.sh) }"
+Invoke-Expression "& { $(Invoke-RestMethod https://raw.githubusercontent.com/yezhengkai/project-templates/main/scripts/download-kickstart.ps1) }"
 ```
 Download the kickstart binary for the specific platform (Linux, Darwin, or Windows) and version to the current directory.
 ```powershell
 # ref: https://www.reddit.com/r/PowerShell/comments/10r5fds/how_to_run_powershell_scripts_directly_from/
-Invoke-Expression "& { $(Invoke-RestMethod https://raw.githubusercontent.com/yezhengkai/project-templates/main/scripts/download-kickstart.sh) } -platform linux -version v0.4.0"
+Invoke-Expression "& { $(Invoke-RestMethod https://raw.githubusercontent.com/yezhengkai/project-templates/main/scripts/download-kickstart.ps1) } -platform linux -version v0.4.0"
 ```
