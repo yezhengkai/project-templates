@@ -5,7 +5,7 @@ set -euo pipefail
 
 # Default variables
 REPO=Keats/kickstart
-PLATFORM=$(uname -s)
+SYSTEM=$(uname -s)
 VERSION=latest
 
 # References:
@@ -34,12 +34,12 @@ while [[ $# -gt 0 ]]; do
     # No need to shift here since the value is part of the same string
     VERSION="${key#*=}"
     ;;
-    -p|--platform)
+    -s|--system)
     shift
-    PLATFORM="$1"
+    SYSTEM="$1"
     ;;
-    -p=*|--platform=*)
-    PLATFORM="${key#*=}"
+    -s=*|--system=*)
+    SYSTEM="${key#*=}"
     ;;
     *)
     # Do whatever you want with extra options
@@ -58,30 +58,30 @@ fi
 # Get file name
 # References:
 # https://stackoverflow.com/questions/2264428/how-to-convert-a-string-to-lower-case-in-bash
-if [[ ${PLATFORM^} == "Darwin" ]]; then
+if [[ ${SYSTEM^} == "Darwin" ]]; then
   ZIP_FILENAME=kickstart-${VERSION}-x86_64-apple-darwin.tar.gz
-elif [[ ${PLATFORM^} == "Linux" ]]; then
+elif [[ ${SYSTEM^} == "Linux" ]]; then
   ZIP_FILENAME=kickstart-${VERSION}-x86_64-unknown-linux-gnu.tar.gz
-elif [[ ${PLATFORM^} == "Windows" ]]; then
+elif [[ ${SYSTEM^} == "Windows" ]]; then
   ZIP_FILENAME=kickstart-${VERSION}-x86_64-pc-windows-msvc.zip
 fi
 
 
 # Download
 DOWNLOAD_URL=https://github.com/${REPO}/releases/download/${VERSION}/${ZIP_FILENAME}
-if [[ ${PLATFORM^} == "Windows" ]]; then
+if [[ ${SYSTEM^} == "Windows" ]]; then
   TEMP_FILE="temp.zip"
 else
   TEMP_FILE="temp.tar.gz"
 fi
 HTTP_CODE=$(curl -SL --progress-bar "$DOWNLOAD_URL" --output "$TEMP_FILE" --write-out "%{http_code}")
 if [[ ${HTTP_CODE} -lt 200 || ${HTTP_CODE} -gt 299 ]]; then
-  echo "error: platform ${PLATFORM} is unsupported."
+  echo "error: system name '${SYSTEM}' is unsupported."
   exit 1
 fi
 
 # Extract archives
-if [[ ${PLATFORM^} == "Windows" ]]; then
+if [[ ${SYSTEM^} == "Windows" ]]; then
   unzip -o $TEMP_FILE
 else
   tar -xf $TEMP_FILE

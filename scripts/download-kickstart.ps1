@@ -1,6 +1,6 @@
 param (
     $version = "latest",
-    $platform = "windows"
+    $system = "windows"
 )
 
 # References:
@@ -21,17 +21,17 @@ if ( $version -ieq "latest") {
 }
 
 # Get file name
-if ( $platform -ieq "darwin" ) {
+if ( $system -ieq "darwin" ) {
   $zip_filename = "kickstart-${version}-x86_64-apple-darwin.tar.gz"
-} elseif ( $platform -ieq "linux" ) {
+} elseif ( $system -ieq "linux" ) {
   $zip_filename = "kickstart-${version}-x86_64-unknown-linux-gnu.tar.gz"
-} elseif ( $platform -ieq "windows" ) {
+} elseif ( $system -ieq "windows" ) {
   $zip_filename = "kickstart-${version}-x86_64-pc-windows-msvc.zip"
 }
 
 # Download
 $download_url = "https://github.com/${repo}/releases/download/${version}/${zip_filename}"
-if ( $platform -ieq "windows" ) {
+if ( $system -ieq "windows" ) {
     $temp_file = "temp.zip"
 } else {
     $temp_file = "temp.tar.gz"
@@ -39,7 +39,7 @@ if ( $platform -ieq "windows" ) {
 Invoke-WebRequest $download_url -Out $temp_file
 
 # Extract archives
-if ( $platform -ieq "windows" ) {
+if ( $system -ieq "windows" ) {
   Expand-Archive $temp_file -DestinationPath . -Force
 } else {
   tar -zxf $temp_file
